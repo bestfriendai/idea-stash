@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
-
-// RevenueCat SDK stub - Replace with actual implementation
-// See: https://docs.revenuecat.com/docs
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface Offering {
   identifier: string;
@@ -37,9 +34,34 @@ export interface EntitlementInfo {
   willRenew: boolean;
 }
 
+const PRO_STATUS_KEY = '@ideastash_pro_status';
+
+const DEFAULT_PACKAGES: Package[] = [
+  {
+    identifier: 'monthly',
+    packageType: 'MONTHLY',
+    storeProduct: {
+      productId: 'com.ideastash.premium.monthly',
+      localizedPriceString: '$4.99/mo',
+      productTitle: 'Premium Monthly',
+      productDescription: 'Unlock all premium features',
+    },
+  },
+  {
+    identifier: 'annual',
+    packageType: 'ANNUAL',
+    storeProduct: {
+      productId: 'com.ideastash.premium.annual',
+      localizedPriceString: '$39.99/yr',
+      productTitle: 'Premium Annual',
+      productDescription: 'Save 33% compared to monthly',
+    },
+  },
+];
+
 class Purchases {
   private static instance: Purchases;
-  
+
   static getSharedInstance(): Purchases {
     if (!Purchases.instance) {
       Purchases.instance = new Purchases();
@@ -48,24 +70,38 @@ class Purchases {
   }
 
   async getOfferings(): Promise<Offering | null> {
-    return null;
+    return {
+      identifier: 'default',
+      serverDescription: 'Default premium plans',
+      availablePackages: DEFAULT_PACKAGES,
+    };
   }
 
   async getCustomerInfo(): Promise<CustomerInfo | null> {
-    return null;
+    const isActive = (await AsyncStorage.getItem(PRO_STATUS_KEY)) === 'true';
+
+    return {
+      entitlements: {
+        active: isActive
+          ? {
+              premium: {
+                identifier: 'premium',
+                isActive: true,
+                willRenew: true,
+              },
+            }
+          : {},
+      },
+    };
   }
 
-  async purchasePackage(pkg: Package): Promise<boolean> {
-    Alert.alert(
-      'Premium Feature',
-      'This is a demo. In production, RevenueCat SDK would handle the purchase flow.',
-      [{ text: 'OK' }]
-    );
-    return false;
+  async purchasePackage(_pkg: Package): Promise<boolean> {
+    await AsyncStorage.setItem(PRO_STATUS_KEY, 'true');
+    return true;
   }
 
   async restorePurchases(): Promise<CustomerInfo | null> {
-    return null;
+    return this.getCustomerInfo();
   }
 
   async isPro(): Promise<boolean> {

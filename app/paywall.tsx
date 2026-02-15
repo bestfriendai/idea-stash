@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
-import { useSubscription, Package } from '../../src/services/purchases';
-import { colors, spacing, radius, fontSize, fontWeight, shadows } from '../../src/ui/theme';
+import { purchases, useSubscription, Package } from '../src/services/purchases';
+import { colors, spacing, radius, fontSize, fontWeight, shadows } from '../src/ui/theme';
 
 const FEATURES = [
   { icon: '☁️', text: 'Cloud sync across devices' },
@@ -21,37 +21,39 @@ const FEATURES = [
   { icon: '🚀', text: 'Priority support' },
 ];
 
-// Demo packages
-const DEMO_PACKAGES: Package[] = [
-  {
-    identifier: 'monthly',
-    packageType: 'MONTHLY',
-    storeProduct: {
-      productId: 'com.ideastash.premium.monthly',
-      localizedPriceString: '$4.99/mo',
-      productTitle: 'Premium Monthly',
-      productDescription: 'Unlock all features',
-    },
-  },
-  {
-    identifier: 'annual',
-    packageType: 'ANNUAL',
-    storeProduct: {
-      productId: 'com.ideastash.premium.annual',
-      localizedPriceString: '$39.99/yr',
-      productTitle: 'Premium Annual',
-      productDescription: 'Save 33%',
-    },
-  },
-];
-
 export default function PaywallScreen() {
   const router = useRouter();
   const { purchase, restore, isPro } = useSubscription();
-  const [selectedPackage, setSelectedPackage] = useState<Package>(DEMO_PACKAGES[1]);
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
 
+  useEffect(() => {
+    const loadOfferings = async () => {
+      try {
+        const offering = await purchases.getOfferings();
+        const available = offering?.availablePackages ?? [];
+        setPackages(available);
+        setSelectedPackageId(available[1]?.identifier ?? available[0]?.identifier ?? null);
+      } catch (error) {
+        Alert.alert('Error', 'Unable to load subscription plans.');
+      }
+    };
+
+    loadOfferings();
+  }, []);
+
+  const selectedPackage = useMemo(
+    () => packages.find((pkg) => pkg.identifier === selectedPackageId) ?? null,
+    [packages, selectedPackageId]
+  );
+
   const handlePurchase = async () => {
+    if (!selectedPackage) {
+      Alert.alert('No Plan Selected', 'Please select a plan to continue.');
+      return;
+    }
+
     if (isPro) {
       Alert.alert('Already Premium', 'You already have Premium access!');
       return;
@@ -91,8 +93,8 @@ export default function PaywallScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen 
-        options={{ 
+      <Stack.Screen
+        options={{
           headerShown: true,
           headerTitle: 'Upgrade to Premium',
           headerLeft: () => (
@@ -100,18 +102,16 @@ export default function PaywallScreen() {
               <Text style={styles.closeText}>Close</Text>
             </TouchableOpacity>
           ),
-        }} 
+        }}
       />
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.premiumIcon}>⭐</Text>
           <Text style={styles.title}>IdeaStash Premium</Text>
           <Text style={styles.subtitle}>Unlock your creative potential!</Text>
         </View>
 
-        {/* Features */}
         <View style={styles.featuresContainer}>
           {FEATURES.map((feature, index) => (
             <View key={index} style={styles.featureRow}>
@@ -121,18 +121,17 @@ export default function PaywallScreen() {
           ))}
         </View>
 
-        {/* Packages */}
         <View style={styles.packagesContainer}>
           <Text style={styles.sectionTitle}>Choose Your Plan</Text>
-          
-          {DEMO_PACKAGES.map((pkg) => (
+
+          {packages.map((pkg) => (
             <TouchableOpacity
               key={pkg.identifier}
               style={[
                 styles.packageCard,
-                selectedPackage.identifier === pkg.identifier && styles.packageCardSelected,
+                selectedPackageId === pkg.identifier && styles.packageCardSelected,
               ]}
-              onPress={() => setSelectedPackage(pkg)}
+              onPress={() => setSelectedPackageId(pkg.identifier)}
             >
               {pkg.identifier === 'annual' && (
                 <View style={styles.bestValueBadge}>
@@ -140,23 +139,25 @@ export default function PaywallScreen() {
                 </View>
               )}
               <View style={styles.packageHeader}>
-                <Text style={[
-                  styles.packageTitle,
-                  selectedPackage.identifier === pkg.identifier && styles.packageTitleSelected,
-                ]}>
+                <Text
+                  style={[
+                    styles.packageTitle,
+                    selectedPackageId === pkg.identifier && styles.packageTitleSelected,
+                  ]}
+                >
                   {pkg.storeProduct.productTitle}
                 </Text>
-                <Text style={[
-                  styles.packagePrice,
-                  selectedPackage.identifier === pkg.identifier && styles.packagePriceSelected,
-                ]}>
+                <Text
+                  style={[
+                    styles.packagePrice,
+                    selectedPackageId === pkg.identifier && styles.packagePriceSelected,
+                  ]}
+                >
                   {pkg.storeProduct.localizedPriceString}
                 </Text>
               </View>
-              <Text style={styles.packageDescription}>
-                {pkg.storeProduct.productDescription}
-              </Text>
-              {selectedPackage.identifier === pkg.identifier && (
+              <Text style={styles.packageDescription}>{pkg.storeProduct.productDescription}</Text>
+              {selectedPackageId === pkg.identifier && (
                 <View style={styles.checkmark}>
                   <Text style={styles.checkmarkText}>✓</Text>
                 </View>
@@ -165,8 +166,7 @@ export default function PaywallScreen() {
           ))}
         </View>
 
-        {/* Purchase Button */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.purchaseButton, isPurchasing && styles.purchaseButtonDisabled]}
           onPress={handlePurchase}
           disabled={isPurchasing}
@@ -176,15 +176,13 @@ export default function PaywallScreen() {
           </Text>
         </TouchableOpacity>
 
-        {/* Restore */}
         <TouchableOpacity style={styles.restoreButton} onPress={handleRestore}>
           <Text style={styles.restoreButtonText}>Restore Purchases</Text>
         </TouchableOpacity>
 
-        {/* Terms */}
         <Text style={styles.termsText}>
-          Subscription automatically renews. Cancel anytime in Settings.
-          By subscribing, you agree to our Terms of Service and Privacy Policy.
+          Subscription automatically renews. Cancel anytime in Settings. By subscribing, you agree
+          to our Terms of Service and Privacy Policy.
         </Text>
       </ScrollView>
     </SafeAreaView>

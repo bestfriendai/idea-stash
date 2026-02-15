@@ -80,14 +80,7 @@ export const useIdeaStore = create<IdeaState>((set, get) => ({
     try {
       const data = await AsyncStorage.getItem(STORAGE_KEY);
       const ideas = data ? JSON.parse(data) : [];
-      
-      if (ideas.length === 0) {
-        const sampleIdeas = generateSampleIdeas();
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(sampleIdeas));
-        set({ ideas: sampleIdeas, isLoading: false });
-      } else {
-        set({ ideas, isLoading: false });
-      }
+      set({ ideas, isLoading: false });
     } catch (error) {
       set({ error: 'Failed to load ideas', isLoading: false });
     }
@@ -170,63 +163,3 @@ export const useIdeaStore = create<IdeaState>((set, get) => ({
     set({ error: null });
   },
 }));
-
-function generateSampleIdeas(): Idea[] {
-  return [
-    {
-      id: '1',
-      title: 'AI-Powered Meal Planner',
-      description: 'An app that generates weekly meal plans based on dietary preferences, budget, and available ingredients using AI.',
-      category: 'tech',
-      tags: ['AI', 'health', 'productivity'],
-      isFavorite: true,
-      isImplemented: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      title: 'Local Artist Marketplace',
-      description: 'A platform connecting local artists with buyers. Features include virtual galleries, commission requests, and event listings.',
-      category: 'business',
-      tags: ['marketplace', 'art', 'community'],
-      isFavorite: true,
-      isImplemented: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: '3',
-      title: 'Morning Routine App',
-      description: 'Guided morning routines with customizable checklists, affirmations, and habit tracking. Focus on building consistent morning habits.',
-      category: 'personal',
-      tags: ['habits', 'productivity', 'wellness'],
-      isFavorite: false,
-      isImplemented: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: '4',
-      title: 'Podcast Clip Generator',
-      description: 'Automatically generate short video clips from long-form podcast episodes for social media sharing.',
-      category: 'creative',
-      tags: ['content', 'social media', 'audio'],
-      isFavorite: false,
-      isImplemented: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: '5',
-      title: 'Language Exchange Meetup App',
-      description: 'Find and organize language exchange meetups in your area. Match with native speakers for mutual learning.',
-      category: 'education',
-      tags: ['language', 'community', 'learning'],
-      isFavorite: false,
-      isImplemented: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  ];
-}

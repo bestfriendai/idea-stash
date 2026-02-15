@@ -12,8 +12,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
-import { useIdeaStore, IdeaCategory, CATEGORY_LABELS, CATEGORY_COLORS } from '../../src/store/ideaStore';
-import { colors, spacing, radius, fontSize, fontWeight, shadows } from '../../src/ui/theme';
+import { useIdeaStore, IdeaCategory, CATEGORY_LABELS, CATEGORY_COLORS } from '../src/store/ideaStore';
+import { colors, spacing, radius, fontSize, fontWeight, shadows } from '../src/ui/theme';
 
 const CATEGORIES: IdeaCategory[] = ['business', 'tech', 'creative', 'personal', 'health', 'education', 'lifestyle', 'other'];
 
@@ -136,7 +136,7 @@ export default function AddIdeaScreen() {
                 >
                   <Text style={[
                     styles.categoryChipText, 
-                    category === cat && styles.categoryChipTextSelected
+                    category === cat && styles.categoryChipSelected
                   ]}>
                     {CATEGORY_LABELS[cat]}
                   </Text>

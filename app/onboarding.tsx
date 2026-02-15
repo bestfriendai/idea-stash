@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useSettingsStore } from '../../src/store/settingsStore';
-import { colors, spacing, radius, fontSize, fontWeight } from '../../src/ui/theme';
+import { useSettingsStore } from '../src/store/settingsStore';
+import { colors, spacing, radius, fontSize, fontWeight } from '../src/ui/theme';
 
 const { width } = Dimensions.get('window');
 
