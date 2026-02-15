@@ -73,6 +73,43 @@ The app features:
 - Implemented/done tracking
 - Pull-to-refresh
 
+## API Configuration
+
+This app uses **RevenueCat** for subscriptions. No external AI APIs required.
+
+### Required .env Variables
+
+```bash
+# RevenueCat (for subscriptions - optional for basic functionality)
+EXPO_PUBLIC_REVENUECAT_API_KEY=your_revenuecat_api_key
+```
+
+### Getting API Keys
+
+1. **RevenueCat**:
+   - Go to [RevenueCat](https://www.revenuecat.com)
+   - Create project and get API key
+   - Configure products in App Store Connect / Google Play Console
+
+### Type Check & Build
+
+```bash
+# Install dependencies
+npm install
+
+# Type check
+npx tsc --noEmit
+
+# Start development server
+npx expo start
+
+# Build for iOS
+eas build --platform ios
+
+# Build for Android
+eas build --platform android
+```
+
 ## License
 
 MIT
